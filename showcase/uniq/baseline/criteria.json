@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "reference": {
+    "product": "GNU Coreutils uniq",
+    "observedVersion": "9.4",
+    "manual": "https://www.gnu.org/software/coreutils/manual/html_node/uniq-invocation.html",
+    "locale": "C"
+  },
+  "scope": "CLI filter on standard input/output. Accept zero arguments or exactly one of -c, -d, -u. Only the declared subset is evaluated.",
+  "limits": [
+    "No file operands, combined or long options, locale-sensitive comparisons, standalone installer, or large-file performance target.",
+    "Numeric formatting and byte-level cases are observations from GNU uniq 9.4 in the C locale."
+  ],
+  "criteria": [
+    {
+      "id": "R01",
+      "name": "Adjacent groups",
+      "weight": 3,
+      "acceptance": "Emit the first record of each consecutive group in input order. A repeated group after a different line is distinct."
+    },
+    {
+      "id": "R02",
+      "name": "Count",
+      "weight": 2,
+      "acceptance": "The single -c flag emits one line per group; prepend the decimal count right-aligned to a minimum width of seven, followed by one space."
+    },
+    {
+      "id": "R03",
+      "name": "Repeated groups",
+      "weight": 2,
+      "acceptance": "The single -d flag emits each group containing at least two lines exactly once."
+    },
+    {
+      "id": "R04",
+      "name": "Single groups",
+      "weight": 2,
+      "acceptance": "The single -u flag emits only groups with exactly one line."
+    },
+    {
+      "id": "R05",
+      "name": "Record boundaries",
+      "weight": 2,
+      "acceptance": "LF delimits records. Empty input has no records; an empty line is a record. A final nonempty unterminated record is emitted with LF."
+    },
+    {
+      "id": "R06",
+      "name": "Byte preservation",
+      "weight": 2,
+      "acceptance": "Compare whole records byte for byte in the C locale. CR, NUL, non-ASCII bytes, and differences in case are data."
+    },
+    {
+      "id": "G01",
+      "name": "Invocation boundary",
+      "weight": 0,
+      "acceptance": "Reject every option or operand outside the four declared invocation forms. Print no stdout, write a diagnostic to stderr and exit nonzero. This is a local design decision; the reference accepts more invocations."
+    }
+  ],
+  "referenceCases": [
+    {
+      "id": "C01",
+      "criteria": [
+        "R01"
+      ],
+      "args": [],
+      "stdinHex": "410a410a420a410a410a",
+      "stdoutHex": "410a420a410a"
+    },
+    {
+      "id": "C02",
+      "criteria": [
+        "R02"
+      ],
+      "args": [
+        "-c"
+      ],
+      "stdinHex": "510a510a580a510a",
+      "stdoutHex": "2020202020203220510a2020202020203120580a2020202020203120510a"
+    },
+    {
+      "id": "C03",
+      "criteria": [
+        "R03"
+      ],
+      "args": [
+        "-d"
+      ],
+      "stdinHex": "410a410a420a410a420a420a",
+      "stdoutHex": "410a420a"
+    },
+    {
+      "id": "C04",
+      "criteria": [
+        "R04"
+      ],
+      "args": [
+        "-u"
+      ],
+      "stdinHex": "410a410a420a410a420a420a",
+      "stdoutHex": "420a410a"
+    },
+    {
+      "id": "C05",
+      "criteria": [
+        "R05"
+      ],
+      "args": [],
+      "stdinHex": "",
+      "stdoutHex": ""
+    },
+    {
+      "id": "C06",
+      "criteria": [
+        "R02",
+        "R05"
+      ],
+      "args": [
+        "-c"
+      ],
+      "stdinHex": "0a0a0a7a0a7a0a0a",
+      "stdoutHex": "20202020202033200a20202020202032207a0a20202020202031200a"
+    },
+    {
+      "id": "C07",
+      "criteria": [
+        "R05"
+      ],
+      "args": [],
+      "stdinHex": "780a780a79",
+      "stdoutHex": "780a790a"
+    },
+    {
+      "id": "C08",
+      "criteria": [
+        "R05",
+        "R04"
+      ],
+      "args": [
+        "-u"
+      ],
+      "stdinHex": "7a0a7a",
+      "stdoutHex": ""
+    },
+    {
+      "id": "C09",
+      "criteria": [
+        "R06"
+      ],
+      "args": [],
+      "stdinHex": "410d0a410a610a610d0a",
+      "stdoutHex": "410d0a410a610a610d0a"
+    },
+    {
+      "id": "C10",
+      "criteria": [
+        "R06",
+        "R03"
+      ],
+      "args": [
+        "-d"
+      ],
+      "stdinHex": "ff00610aff00610afe00610a",
+      "stdoutHex": "ff00610a"
+    },
+    {
+      "id": "C11",
+      "criteria": [
+        "R02"
+      ],
+      "args": [
+        "-c"
+      ],
+      "stdinHex": "770a770a770a770a770a770a770a770a770a770a770a770a",
+      "stdoutHex": "2020202020313220770a"
+    },
+    {
+      "id": "C12",
+      "criteria": [
+        "R04",
+        "R05"
+      ],
+      "args": [
+        "-u"
+      ],
+      "stdinHex": "0a0a5a0a0a",
+      "stdoutHex": "5a0a0a"
+    }
+  ],
+  "localRejections": [
+    {
+      "id": "L01",
+      "criteria": [
+        "G01"
+      ],
+      "args": [
+        "-i"
+      ]
+    },
+    {
+      "id": "L02",
+      "criteria": [
+        "G01"
+      ],
+      "args": [
+        "file.txt"
+      ]
+    },
+    {
+      "id": "L03",
+      "criteria": [
+        "G01"
+      ],
+      "args": [
+        "-c",
+        "-d"
+      ]
+    },
+    {
+      "id": "L04",
+      "criteria": [
+        "G01"
+      ],
+      "args": [
+        "--count"
+      ]
+    }
+  ]
+}

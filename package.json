@@ -1,0 +1,29 @@
+{
+  "name": "reftrail",
+  "version": "4.5.3",
+  "description": "Build an independent implementation from documented behavior: freeze the acceptance criteria before coding, then show which workflows pass and where the evidence ends.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.16"
+  },
+  "bin": {
+    "reftrail": "tools/reftrail.mjs"
+  },
+  "scripts": {
+    "test": "node --test \"tests/*.test.mjs\"",
+    "showcase": "node showcase/uniq/verify.mjs",
+    "showcase:reference": "node showcase/uniq/verify.mjs --reference",
+    "catalog": "node tools/catalog.mjs report showcase/uniq/COVERAGE.csv --gates G01 --strict",
+    "integration": "node integration/verify.mjs",
+    "installed": "node integration/installed-command.mjs"
+  },
+  "keywords": [
+    "acceptance-criteria",
+    "coding-agents",
+    "evidence",
+    "reference-implementation",
+    "requirements-traceability",
+    "spec-driven-development"
+  ]
+}

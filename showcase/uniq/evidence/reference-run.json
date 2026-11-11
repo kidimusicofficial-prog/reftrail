@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "criteriaSha256": "ca0f09342cbe9d306e3cb8569dde6e1c5ea33a91d2619cfcd5ba1ade7a96fd90",
+  "specifiedExamplesPassed": 12,
+  "localRejectionsPassed": 4,
+  "supplementalReferenceDigestsPassed": 4,
+  "liveReferenceComparisons": 16,
+  "liveReferenceVersion": "uniq (GNU coreutils) 9.4",
+  "node": "v24.22.1",
+  "platform": "linux",
+  "architecture": "x64"
+}

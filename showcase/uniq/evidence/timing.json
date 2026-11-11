@@ -1,0 +1,11 @@
+{
+  "clock": "UTC, execution environment",
+  "firstObservedSpecificationWorkSecond": "2026-11-09T17:37:28Z",
+  "criteriaFreezeUtc": "2026-11-09T17:38:07.413734Z",
+  "liveVerifierStartUtc": "2026-11-09T17:39:57.247Z",
+  "liveVerifierEndUtc": "2026-11-09T17:39:58.563Z",
+  "liveVerifierWallSeconds": 1.316,
+  "scope": "Specification work through first independent live verification; parallel work overlaps.",
+  "providerBilledPrice": null,
+  "providerBilledTokens": null
+}

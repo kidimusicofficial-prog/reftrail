@@ -1,0 +1,47 @@
+{
+  "change": "showcase/uniq/verify.mjs now runs unconditionally. Its former start check compared the started path with the file's own path without resolving links.",
+  "reason": "Reached through a linked folder (symbolic link, Windows junction), the verifier printed nothing, ran no check and ended with exit code 0. An automated step that looks at the exit code alone would have read this as a pass. The same start check was the cause of the silent installed command found in the review of 4.5.",
+  "observedBefore": {
+    "command": "node <linked folder>/showcase/uniq/verify.mjs",
+    "exitCode": 0,
+    "outputBytes": 0,
+    "appliesTo": "4.4, 4.5.0"
+  },
+  "observedAfter": {
+    "command": "node <linked folder>/showcase/uniq/verify.mjs",
+    "exitCode": 0,
+    "outputBytes": 431,
+    "status": "PASS"
+  },
+  "changedLines": "The line that opened the start check became a plain block with a two-line comment. No other line changed. The function that runs the acceptance cases is unchanged.",
+  "verifierSha256Before": "d6ae4522119a8d12c20f9e55381e6ce8f50edf8f6c57134dd81948f754f61b41",
+  "verifierSha256After": "70c8ea4e2bccaa3987d78ad928fcb7e152711a274d935571bee1bb42326ad5ad",
+  "criteriaChanged": false,
+  "criteriaSha256": "aeb2acf023f6a27b7042b09b194ccf0a3b107637fc928f2be26a81bc7d520a75",
+  "implementationChanged": false,
+  "implementationSha256": "e9819ff89daafb5b9c0a1b2df755d56034f902b6cb505797993027c774694704",
+  "linuxRun": {
+    "environment": "Ubuntu 24.04 x86-64, Node.js 22.23.4, GNU Coreutils uniq 9.4, LC_ALL=C",
+    "liveVerifierStartUtc": "2026-11-10T10:17:07.120Z",
+    "liveVerifierEndUtc": "2026-11-10T10:17:08.407Z",
+    "result": {
+      "status": "PASS",
+      "criteriaRevision": 2,
+      "criteriaSha256": "aeb2acf023f6a27b7042b09b194ccf0a3b107637fc928f2be26a81bc7d520a75",
+      "specifiedExamplesPassed": 12,
+      "localRejectionsPassed": 4,
+      "supplementalReferenceDigestsPassed": 4,
+      "closedOutputCasesPassed": 2,
+      "liveByteComparisons": 16,
+      "liveEarlyExitChecks": 2,
+      "liveReferenceVersion": "uniq (GNU coreutils) 9.4",
+      "node": "v22.23.4",
+      "platform": "linux",
+      "architecture": "x64"
+    },
+    "repeatedLiveRuns": "10/10 passed, ending 2026-11-10T10:17:21Z",
+    "faultyVariantCheck": "tests/early-exit.test.mjs passed: the faulty variant is still rejected with a timeout."
+  },
+  "windowsRun": "Not repeated with this verifier. The Windows comparison in reference-run-v2.json was recorded with the previous verifier (d6ae4522...). The GitHub workflow runs the portable check on Windows; a live comparison against GNU uniq on Windows needs a run of 'node showcase/uniq/verify.mjs --reference' there.",
+  "roles": "An AI assistant working as external reviewer made this change and ran these checks at the author's request. For this change it is a self-check, not an independent review."
+}

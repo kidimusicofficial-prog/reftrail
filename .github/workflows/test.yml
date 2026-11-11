@@ -1,0 +1,66 @@
+name: Verify workflow and examples
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Ubuntu 24.04 ships GNU Coreutils uniq 9.4, the recorded reference. Ubuntu 26.04
+        # (ubuntu-latest from late 2026) defaults to uutils, which the GNU comparison rejects.
+        # Node.js 22 is the stated minimum line. Node.js 24 is the line of the recorded runs.
+        include:
+          - { os: ubuntu-24.04, node: '22' }
+          - { os: ubuntu-24.04, node: '24' }
+          - { os: windows-latest, node: '24' }
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          package-manager-cache: false
+      - name: Run the direct test suite with the runner's temporary directory
+        run: node --test "tests/*.test.mjs"
+      - name: Exercise a Windows temporary path alias
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $parent = Join-Path $env:RUNNER_TEMP ("temp-path-test-" + [guid]::NewGuid().ToString('N'))
+          $source = Join-Path $parent 'Temporary files & spaces'
+          $null = New-Item -ItemType Directory -Path $source -Force
+          try {
+            $alias = (New-Object -ComObject Scripting.FileSystemObject).GetFolder($source).ShortPath
+            if ($alias -and $alias -ine $source) {
+              Write-Host 'Testing the Windows short path.'
+            } else {
+              $alias = Join-Path $parent 'Temporary junction & spaces'
+              $null = New-Item -ItemType Junction -Path $alias -Target $source
+              Write-Host '8.3 alias unavailable. Testing a Windows directory junction.'
+            }
+            $env:TEMP = $alias
+            $env:TMP = $alias
+            node -e "const p=require('node:path'), t=require('node:os').tmpdir(); require('node:assert/strict').notEqual(p.relative(t,require('node:fs').realpathSync.native(t)), '', 'Expected a path alias')"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            node --test tests/installer.test.mjs tests/package.test.mjs
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } finally {
+            Remove-Item -LiteralPath $parent -Recurse -Force
+          }
+      - name: Run the reference case against pinned expectations
+        run: node showcase/uniq/verify.mjs
+      - name: Compare the reference case to GNU uniq
+        if: runner.os == 'Linux'
+        run: node showcase/uniq/verify.mjs --reference
+      - name: Check the showcase catalog and its mandatory check
+        run: node tools/catalog.mjs report showcase/uniq/COVERAGE.csv --gates G01 --strict
+      - name: Install the packed tools and start the installed command
+        if: runner.os == 'Linux'
+        run: node integration/installed-command.mjs
+      - name: Verify the example package in its isolated environment
+        run: node integration/verify.mjs

@@ -1,0 +1,32 @@
+{
+  "revision": 2,
+  "clock": "UTC, execution environment (Windows 11 x64, Git for Windows)",
+  "trigger": "A separate differential check on 2026-11-09 observed \"line-runs: EPIPE: broken pipe, write\" on stderr when a downstream reader closed standard output early. GNU uniq 8.32 wrote no diagnostic.",
+  "criteriaFrozenUtc": "2026-11-09T18:03:19Z",
+  "criteriaSha256": "aeb2acf023f6a27b7042b09b194ccf0a3b107637fc928f2be26a81bc7d520a75",
+  "separateRecord": "The revision 2 pin was announced in the requester chat before the implementation change.",
+  "implementationBeforeSha256": "4de335e961e6b7f3a4903e331411f44ac9078943e8b566e04e2be27afe8fe80b",
+  "failingRunBeforeFixUtc": "2026-11-09T18:04:10Z",
+  "failingRunResult": "P01: unexpected diagnostic \"line-runs: EPIPE: broken pipe, write\n\"",
+  "implementationChangedUtc": "2026-11-09T18:04:36Z",
+  "implementationAfterSha256": "e9819ff89daafb5b9c0a1b2df755d56034f902b6cb505797993027c774694704",
+  "liveVerifierStartUtc": "2026-11-09T18:07:18.927Z",
+  "liveVerifierEndUtc": "2026-11-09T18:07:20.801Z",
+  "roles": "One agent wrote criteria revision 2, changed the implementation and ran the checks. This is a marked self-check, not an independent review.",
+  "providerBilledPrice": null,
+  "providerBilledTokens": null,
+  "testCorrection": {
+    "reason": "An external review showed that the first P01-P02 harness sent all input and closed standard input itself. A deliberately faulty variant that ignores failed writes and keeps reading until end of input therefore passed. The first harness also reported a timeout on Windows as EBUSY because it removed the working directory before the killed process had closed.",
+    "criteriaChanged": false,
+    "criteriaNote": "R07 already requires the program to stop reading. Only the harness changed; criteria revision 2 and its pin are unchanged.",
+    "harness": "Standard input stays open. After the first output chunk the read end is closed and further distinct lines keep arriving every 10 ms. The program must end within the case time limit with empty stderr. A timeout is reported only after the killed process has closed.",
+    "supersededRun": "reference-run-v2-superseded.json (18:07:18.927Z, first harness, 18 combined live checks)",
+    "verifierSha256": "d6ae4522119a8d12c20f9e55381e6ce8f50edf8f6c57134dd81948f754f61b41",
+    "implementationSha256": "e9819ff89daafb5b9c0a1b2df755d56034f902b6cb505797993027c774694704",
+    "faultyVariantCheck": "tests/early-exit.test.mjs derives the faulty variant from line-runs.mjs. It fails the corrected harness with a timeout message and passed the first harness.",
+    "liveVerifierStartUtc": "2026-11-09T18:54:28.573Z",
+    "liveVerifierEndUtc": "2026-11-09T18:54:30.419Z",
+    "repeatedLiveRuns": "10/10 passed, ending 2026-11-09T18:54:48Z",
+    "roles": "The same agent that wrote revision 2 corrected the harness. Self-check, prompted by an external review."
+  }
+}

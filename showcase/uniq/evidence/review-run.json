@@ -1,0 +1,16 @@
+{
+  "reference": "uniq (GNU coreutils) 9.4",
+  "node": "v24.22.1",
+  "locale": "C",
+  "seed": 573448,
+  "samples": 40,
+  "referenceComparisons": 160,
+  "localRejections": 10,
+  "start": "2026-11-09T17:40:46.768600+00:00",
+  "end": "2026-11-09T17:40:50.548224+00:00",
+  "elapsedSeconds": 3.78,
+  "candidateSha256": "4de335e961e6b7f3a4903e331411f44ac9078943e8b566e04e2be27afe8fe80b",
+  "reviewScriptSha256": "910205cfb572c794966090ac2c4a06d2048eacd9f6bff6cd54082f331ee55cd9",
+  "orderedResultListSha256": "18fb72a6c44e7f77d9c48c271771c3e2a6817214d1fc53a3380ef2e31f2c5850",
+  "status": "PASS"
+}

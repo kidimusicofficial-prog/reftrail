@@ -1,0 +1,9 @@
+node_modules/
+.artifacts/
+*.log
+.DS_Store
+Thumbs.db
+/beispiel-profil.json
+/beispiel-paket/
+# Working files of an interrupted criteria freeze
+reftrail-*.partial
