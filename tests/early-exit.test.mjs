@@ -39,10 +39,9 @@ test('early-exit cases reject a program that keeps reading after its output clos
 // A socket closed with unread data can make a blocked writer fail with ECONNRESET instead of
 // EPIPE, so GNU uniq reported "Connection reset by peer" in about one run in eight. The early
 // close must use a real pipe, as `head -n 1` in a shell does. This variant stops quietly only on
-// a pipe and therefore fails every time its output is a socket.
-test('early-exit cases give the program a real pipe as standard output', {
-  skip: process.platform === 'win32' && 'Windows connects child output through named pipes, not sockets',
-}, async t => {
+// a pipe and therefore fails every time its output is a socket. Windows uses named pipes, which
+// count as pipes there too; a skipped test would block the release receipt.
+test('early-exit cases give the program a real pipe as standard output', async t => {
   const dir = await mkdtemp(path.join(await realpath(tmpdir()), 'early-exit-pipe-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
   await cp(path.join(root, 'tools'), path.join(dir, 'tools'), { recursive: true });

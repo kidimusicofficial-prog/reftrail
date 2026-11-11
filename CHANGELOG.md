@@ -10,7 +10,7 @@ Correction after the first run of the GitHub workflow. The job on Ubuntu 24.04 w
 
 ### Added
 
-- A test that runs the verifier with a program variant that stops quietly only when its standard output is a pipe. It failed in 5 of 5 runs on 4.5.3 and passes now. It is skipped on Windows.
+- A test that runs the verifier with a program variant that stops quietly only when its standard output is a pipe. It failed in 5 of 5 runs on 4.5.3 and passes now. It runs on every system, Windows included.
 
 ### Changed
 
