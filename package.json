@@ -1,6 +1,6 @@
 {
   "name": "reftrail",
-  "version": "4.5.3",
+  "version": "4.5.4",
   "description": "Build an independent implementation from documented behavior: freeze the acceptance criteria before coding, then show which workflows pass and where the evidence ends.",
   "license": "MIT",
   "type": "module",

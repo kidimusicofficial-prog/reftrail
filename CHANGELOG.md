@@ -1,5 +1,26 @@
 # Changes · Änderungen
 
+## 4.5.4 – 2026-11-11
+
+Correction after the first run of the GitHub workflow. The job on Ubuntu 24.04 with Node.js 22 failed in the comparison with GNU `uniq`. The fault was reproduced on 4.5.3 before the change: 5 of 40 local runs of `node showcase/uniq/verify.mjs --reference` failed with the same message, on the delivered files and on the published ones alike.
+
+### Fixed
+
+- **The early-exit check against GNU `uniq` failed at random.** In about one run in eight, check P01 ended with `P01 reference: unexpected diagnostic "uniq: write error: Connection reset by peer\n"`. On Linux and macOS Node.js connects the output of a started program through a socket pair, not a pipe. A socket closed with unread data can make a blocked writer fail with `ECONNRESET` instead of `EPIPE`, and GNU `uniq` reports that as a write error. On Linux and macOS the verifier now gives the program a named pipe (FIFO) as standard output and closes its read end after the first chunk, as `head -n 1` does in a shell. A write after that fails with `EPIPE`. After the change 100 of 100 local runs passed. Windows already used named pipes and is unchanged.
+
+### Added
+
+- A test that runs the verifier with a program variant that stops quietly only when its standard output is a pipe. It failed in 5 of 5 runs on 4.5.3 and passes now. It is skipped on Windows.
+
+### Changed
+
+- The SHA-256 of `showcase/uniq/verify.mjs` changes from `70c8ea4e2bccaa3987d78ad928fcb7e152711a274d935571bee1bb42326ad5ad` to `e4eede79417bbc74f8970d34aac8d32082bca89cb4e83359183f2e65c6bf1eeb`. Program, criteria and baselines of the example are unchanged.
+- On Linux and macOS the early-exit checks need the `mkfifo` command, which GNU Coreutils and macOS provide.
+
+### Limits
+
+- Run locally on Linux with Node.js 22 only. Windows and Node.js 24 are covered by the GitHub workflow. Not run on macOS.
+
 ## 4.5.3 – 2026-11-10
 
 Correction after a review that rejected 4.5.2 for one finding. The finding was reproduced on 4.5.2 before the change, with a simulated refusal as in the review and on a mounted file system that refuses hard links.
@@ -77,6 +98,8 @@ Corrections after a review that rejected 4.5. All four findings were reproduced 
 Versions up to 4.4 were distributed as archives without a change record.
 
 ---
+
+**Deutsch, Kurzfassung 4.5.4.** Korrektur nach dem ersten Lauf des GitHub-Workflows. Der Vergleich mit GNU `uniq` scheiterte zufällig, lokal in 5 von 40 Läufen, mit „uniq: write error: Connection reset by peer“. Unter Linux und macOS verbindet Node.js die Ausgabe eines gestarteten Programms über ein Socket-Paar statt über eine Pipe. Wird ein Socket mit ungelesenen Daten geschlossen, kann ein wartender Schreiber `ECONNRESET` statt `EPIPE` erhalten. Das Prüfskript gibt dem Programm dort jetzt eine benannte Pipe (FIFO) als Standardausgabe, wie `head -n 1` in einer Shell. Danach bestanden 100 von 100 Läufen. Ein neuer Test scheiterte an 4.5.3 in 5 von 5 Läufen und besteht jetzt. Die Prüfsumme des Prüfskripts ändert sich; Programm, Kriterien und Baselines sind unverändert. Unter Linux und macOS brauchen die Abbruchprüfungen den Befehl `mkfifo`. Lokal nur unter Linux mit Node.js 22 ausgeführt, nicht unter macOS.
 
 **Deutsch, Kurzfassung 4.5.3.** Korrektur nach einer Prüfung, die 4.5.2 wegen eines Befunds abgelehnt hat. Laut Anleitung erschien die Baseline erst vollständig unter ihrem Namen. Das galt nur auf Datenträgern mit Hardlink-Unterstützung. Verweigerte der Datenträger den Hardlink, schrieb 4.5.2 direkt unter den Zielnamen, und ein gewaltsam beendeter Prozess hinterließ dort eine unvollständige Datei, die den nächsten Versuch blockierte. `freeze` hat diesen zweiten Schreibweg nicht mehr und bricht ohne Hardlinks ab, bevor unter dem Zielnamen etwas entsteht. Die Aussage gilt damit auf jedem Datenträger. Außerdem prüft der Befehl jetzt vor der Namensvergabe statt danach. Die Anleitung nennt die Voraussetzung, den Ausweg (auf anderem Laufwerk festschreiben, Baseline kopieren, mit `check` bestätigen) und den Wiederanlauf für alle drei Fälle eines nicht beendeten Laufs. Unter Windows nicht ausgeführt.
 

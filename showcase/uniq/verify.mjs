@@ -2,7 +2,9 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { closeSync, constants, openSync } from 'node:fs';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { Socket } from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,12 +33,41 @@ function compareOutput(result, expected, label) {
   assert.ok(result.stdout.equals(expected), label + ': output bytes differ');
 }
 
+// On Linux and macOS Node.js connects 'pipe' output through a socket pair. A socket closed with
+// unread data can make a blocked writer fail with ECONNRESET instead of EPIPE, and GNU uniq then
+// reports "Connection reset by peer". A named pipe (FIFO) behaves like the pipe of a shell.
+// Windows already connects child output through named pipes.
+let outputPipes = 0;
+function outputPipe(cwd) {
+  if (process.platform === 'win32') return null;
+  const fifo = path.join(cwd, 'early-close-' + (++outputPipes) + '.fifo');
+  const made = spawnSync('mkfifo', [fifo]);
+  if (made.error) throw made.error;
+  assert.equal(made.status, 0, 'mkfifo failed: ' + made.stderr);
+  // The read end opens without waiting for a writer, so the write end then opens at once.
+  const reader = openSync(fifo, constants.O_RDONLY | constants.O_NONBLOCK);
+  try {
+    return { reader, writer: openSync(fifo, constants.O_WRONLY) };
+  } catch (error) {
+    closeSync(reader);
+    throw error;
+  }
+}
+
 // Send the initial distinct lines, keep standard input open and close the read end after the
 // first output chunk, as a reader such as `head -n 1` would. Further distinct lines keep arriving,
 // so a program that ignores the failed write and keeps reading never sees end of input.
 function launchWithEarlyClose(program, args, initialLines, cwd, timeoutMs) {
   return new Promise((resolve, reject) => {
-    const child = spawn(program, args, { cwd, env: { ...process.env, LC_ALL: 'C' }, windowsHide: true });
+    const pipe = outputPipe(cwd);
+    const child = spawn(program, args, {
+      cwd, env: { ...process.env, LC_ALL: 'C' }, windowsHide: true,
+      stdio: ['pipe', pipe ? pipe.writer : 'pipe', 'pipe'],
+    });
+    // The program now holds its own copy of the write end. This process keeps only the read end,
+    // so closing it below leaves the pipe without a reader, as `head -n 1` does when it exits.
+    if (pipe) closeSync(pipe.writer);
+    const stdout = pipe ? new Socket({ fd: pipe.reader, readable: true, writable: false }) : child.stdout;
     const stderr = [];
     let firstChunk = 0;
     let next = 1;
@@ -55,13 +86,14 @@ function launchWithEarlyClose(program, args, initialLines, cwd, timeoutMs) {
       clearInterval(feed);
       child.kill('SIGKILL');
     }, timeoutMs);
-    child.on('error', error => { clearInterval(feed); clearTimeout(timer); reject(error); });
+    child.on('error', error => { clearInterval(feed); clearTimeout(timer); stdout.destroy(); reject(error); });
     child.stdin.on('error', () => {}); // Writing fails once the program has stopped reading.
     child.stderr.on('data', chunk => stderr.push(chunk));
-    child.stdout.once('data', chunk => { firstChunk = chunk.length; child.stdout.destroy(); });
+    stdout.once('data', chunk => { firstChunk = chunk.length; stdout.destroy(); });
     child.on('close', (status, signal) => {
       clearInterval(feed);
       clearTimeout(timer);
+      stdout.destroy();
       if (timedOut) reject(new Error('Process kept running after its reader closed standard output'));
       else resolve({ status, signal, firstChunk, stderr: Buffer.concat(stderr) });
     });
