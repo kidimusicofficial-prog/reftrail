@@ -38,10 +38,11 @@ test('early-exit cases reject a program that keeps reading after its output clos
 // Regression for 4.5.4: on Linux and macOS Node.js connects 'pipe' output through a socket pair.
 // A socket closed with unread data can make a blocked writer fail with ECONNRESET instead of
 // EPIPE, so GNU uniq reported "Connection reset by peer" in about one run in eight. The early
-// close must use a real pipe, as `head -n 1` in a shell does. This variant stops quietly only on
-// a pipe and therefore fails every time its output is a socket. Windows uses named pipes, which
-// count as pipes there too; a skipped test would block the release receipt.
-test('early-exit cases give the program a real pipe as standard output', async t => {
+// close must use a real pipe, as `head -n 1` in a shell does. This variant does not stop quietly
+// when its output is a socket and therefore fails every time the harness uses one. Windows uses
+// named pipes, and Node.js never reports a socket there; a skipped test would block the release
+// receipt, so the test runs everywhere.
+test('early-exit cases do not connect the program output through a socket', async t => {
   const dir = await mkdtemp(path.join(await realpath(tmpdir()), 'early-exit-pipe-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
   await cp(path.join(root, 'tools'), path.join(dir, 'tools'), { recursive: true });
@@ -52,11 +53,11 @@ test('early-exit cases give the program a real pipe as standard output', async t
   const quietStop = "  const readerClosed = error => error?.code === 'EPIPE';\n";
   assert.equal(original.split(quietStop).length, 2, 'Expected one quiet-stop rule in the showcase program');
   await writeFile(program, original.replace(quietStop,
-    "  const outputIsPipe = (await import('node:fs')).fstatSync(1).isFIFO();\n" +
-    "  const readerClosed = error => error?.code === 'EPIPE' && outputIsPipe;\n"));
+    "  const outputIsSocket = (await import('node:fs')).fstatSync(1).isSocket();\n" +
+    "  const readerClosed = error => error?.code === 'EPIPE' && !outputIsSocket;\n"));
 
   const result = spawnSync(process.execPath, [path.join(dir, 'showcase', 'uniq', 'verify.mjs')], {
     cwd: dir, encoding: 'utf8', timeout: 60_000,
   });
-  assert.equal(result.status, 0, 'The early close did not use a pipe:\n' + result.stdout + result.stderr);
+  assert.equal(result.status, 0, 'The early close used a socket:\n' + result.stdout + result.stderr);
 });
